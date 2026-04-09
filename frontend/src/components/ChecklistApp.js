@@ -8,10 +8,27 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { v4 as uuidv4 } from 'uuid';
 
 const ChecklistApp = () => {
-  const [checklists, setChecklists] = useLocalStorage('checklists', [
-    { id: uuidv4(), name: 'My Tasks', tasks: [], repeatType: 'none', repeatCount: 0 }
-  ]);
-  const [activeChecklistId, setActiveChecklistId] = useLocalStorage('activeChecklistId', checklists[0]?.id);
+  // Initialize with a stable default
+  const getInitialChecklists = () => {
+    const stored = window.localStorage.getItem('checklists');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return [{ id: uuidv4(), name: 'My Tasks', tasks: [], repeatType: 'none', repeatCount: 0 }];
+  };
+
+  const [checklists, setChecklists] = useLocalStorage('checklists', getInitialChecklists());
+  const [activeChecklistId, setActiveChecklistId] = useLocalStorage(
+    'activeChecklistId', 
+    checklists[0]?.id
+  );
+
+  // Ensure activeChecklistId is valid
+  useEffect(() => {
+    if (!checklists.find(cl => cl.id === activeChecklistId) && checklists.length > 0) {
+      setActiveChecklistId(checklists[0].id);
+    }
+  }, [checklists, activeChecklistId, setActiveChecklistId]);
 
   const activeChecklist = checklists.find(cl => cl.id === activeChecklistId) || checklists[0];
   const activeTasks = activeChecklist?.tasks || [];

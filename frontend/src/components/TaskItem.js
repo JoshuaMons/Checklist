@@ -31,10 +31,18 @@ const TaskItem = ({ task, onToggle, onDelete, onUpdate, onRestore, isCompleted =
   );
 
   const handleDragEnd = (event, info) => {
-    if (info.offset.x > SWIPE_THRESHOLD) {
+    const offset = info.offset.x;
+    if (offset > SWIPE_THRESHOLD) {
+      // Swipe right - complete task
       onToggle(task.id);
-    } else if (info.offset.x < -SWIPE_THRESHOLD) {
+      x.set(0); // Reset position
+    } else if (offset < -SWIPE_THRESHOLD) {
+      // Swipe left - delete task
       onDelete(task.id);
+      x.set(0); // Reset position
+    } else {
+      // Not enough swipe, snap back
+      x.set(0);
     }
   };
 
@@ -105,7 +113,8 @@ const TaskItem = ({ task, onToggle, onDelete, onUpdate, onRestore, isCompleted =
           onDragEnd={!isCompleted && !isDeleted ? handleDragEnd : undefined}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, x: x.get() > 0 ? 100 : -100 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
           className={`relative bg-white py-4 px-1 border-b border-slate-100 ${
             !isCompleted && !isDeleted ? 'cursor-grab active:cursor-grabbing' : ''
           } ${
