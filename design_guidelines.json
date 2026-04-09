@@ -1,0 +1,69 @@
+{
+  "theme": "light",
+  "archetype": "Archetype 3 (Pastel & Soft) mixed with Swiss Minimalist grey base",
+  "colors": {
+    "background": "#F9FAFB",
+    "surface": "#FFFFFF",
+    "surface_completed": "#F8FAFC",
+    "text_primary": "#0F172A",
+    "text_secondary": "#64748B",
+    "text_completed": "#94A3B8",
+    "accent_green": "#A7F3D0",
+    "accent_blue": "#BAE6FD",
+    "accent_grey": "#E2E8F0",
+    "swipe_delete_bg": "#FECACA",
+    "swipe_delete_icon": "#EF4444",
+    "swipe_complete_bg": "#D1FAE5",
+    "swipe_complete_icon": "#10B981",
+    "button_hover": "#F1F5F9"
+  },
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "Work Sans",
+    "h1": "text-3xl sm:text-4xl tracking-tight font-light text-slate-800",
+    "h2": "text-xl sm:text-2xl tracking-tight font-medium text-slate-700",
+    "body": "text-base leading-relaxed text-slate-800",
+    "small": "text-xs tracking-[0.05em] text-slate-500 uppercase font-medium",
+    "task_text": "text-lg text-slate-800",
+    "task_completed_text": "text-lg text-slate-400 line-through"
+  },
+  "spacing_and_layout": {
+    "global_padding": "p-4 sm:p-6",
+    "list_item_padding": "py-4 px-1",
+    "border_radius": "rounded-2xl",
+    "container": "max-w-md mx-auto h-[100dvh] flex flex-col relative bg-slate-50 overflow-hidden",
+    "header_spacing": "pt-8 pb-4 px-6"
+  },
+  "motion_and_interactions": {
+    "swipe_gestures": "Implement via framer-motion <motion.li>. drag='x', dragConstraints={{ left: 0, right: 0 }}, dragElastic={0.8}. Threshold for action ~80px. Right swipe (positive x) triggers complete. Left swipe (negative x) triggers delete.",
+    "swipe_feedback_layer": "Absolute positioned background behind the task item. Background color transitions: Neutral -> Green (Right Swipe) / Red (Left Swipe). Icons scale up as swipe progresses.",
+    "list_animation": "Use <AnimatePresence> and layout prop on motion elements so checked tasks glide to the bottom section smoothly.",
+    "microinteractions": "Active states on buttons scale down slightly (active:scale-95 transition-transform)."
+  },
+  "components": {
+    "Task_Item": "Cardless design. 1px border-b border-slate-100. Swipeable area sits on top of action background.",
+    "Quick_Add_Input": "Sticky at bottom. Crystal glassmorphism: backdrop-blur-xl bg-white/70 border-t border-slate-200 shadow-[0_-8px_32px_rgba(0,0,0,0.02)]. Generous padding.",
+    "Priority_Tags": "Small pill badges using light blue/grey accents (text-xs px-2.5 py-1 rounded-full bg-sky-50 text-sky-600).",
+    "Due_Date": "Inline small text using lucide Calendar icon, formatted compactly (e.g., 'Today', 'Oct 12') text-slate-400.",
+    "Checklists_Nav": "Horizontal scrollable pill tabs at the top for switching multiple checklists. Active: bg-slate-800 text-white. Inactive: text-slate-500 hover:bg-slate-200.",
+    "Completed_Section": "A visually distinct bottom section. Tasks moved here receive a grey shading (bg-slate-50/50), text turns muted grey, and strikethrough is applied."
+  },
+  "libraries_to_install": [
+    "framer-motion",
+    "date-fns",
+    "lucide-react",
+    "uuid",
+    "clsx",
+    "tailwind-merge"
+  ],
+  "image_urls": {},
+  "instructions_to_main_agent": [
+    "Strictly follow the greyish-toned minimalist visual language. Do not introduce heavy shadows or harsh borders.",
+    "Implement the task list state entirely via browser localStorage. No backend APIs.",
+    "Use framer-motion to create the swipe-to-action interactions. The interaction should feel tactile and frictionless. When the user swipes an item left, show a red background with a trash icon underneath; swiping right shows a green background with a checkmark.",
+    "Once checked, use framer-motion 'layout' animation to move the task smoothly to a 'Completed' section below the active tasks.",
+    "Use Shadcn UI components for Edit Task (Dialog/Sheet), Due Date (Popover + Calendar), and Priority (Select/Dropdown). Overwrite Shadcn styles to strip away their default 'Vercel' look, replacing them with the soft pastel/grey theme.",
+    "Ensure the layout is robust on mobile devices: prevent horizontal scrolling on the main container and handle the viewport height with h-[100dvh].",
+    "Include the required data-testid attributes on all interactive elements: checklist tabs, task items, swipe-complete zones, swipe-delete zones, and the quick add button."
+  ]
+}
