@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { Calendar, Pencil, Check, Trash2 } from 'lucide-react';
+import { Calendar, Pencil, Check, Trash2, RotateCcw, GripVertical } from 'lucide-react';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 const SWIPE_THRESHOLD = 80;
 
-const TaskItem = ({ task, onToggle, onDelete, onUpdate, isCompleted = false }) => {
+const TaskItem = ({ task, onToggle, onDelete, onUpdate, onRestore, isCompleted = false, isDeleted = false, isDraggable = false }) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editText, setEditText] = useState(task.text);
   const [editPriority, setEditPriority] = useState(task.priority);
@@ -80,64 +80,88 @@ const TaskItem = ({ task, onToggle, onDelete, onUpdate, isCompleted = false }) =
   return (
     <>
       <div className="relative" data-testid={`task-item-${task.id}`}>
-        {/* Background Action Layer */}
-        <motion.div
-          style={{ backgroundColor }}
-          className="absolute inset-0 flex items-center justify-between px-6 rounded-lg"
-        >
-          <motion.div style={{ scale: iconScale }}>
-            <Trash2 className="w-5 h-5 text-red-500" />
+        {/* Background Action Layer - only for active tasks */}
+        {!isCompleted && !isDeleted && (
+          <motion.div
+            style={{ backgroundColor }}
+            className="absolute inset-0 flex items-center justify-between px-6 rounded-lg"
+          >
+            <motion.div style={{ scale: iconScale }}>
+              <Trash2 className="w-5 h-5 text-red-500" />
+            </motion.div>
+            <motion.div style={{ scale: iconScale }}>
+              <Check className="w-5 h-5 text-green-600" />
+            </motion.div>
           </motion.div>
-          <motion.div style={{ scale: iconScale }}>
-            <Check className="w-5 h-5 text-green-600" />
-          </motion.div>
-        </motion.div>
+        )}
 
         {/* Task Item */}
         <motion.div
           layout
-          drag="x"
+          drag={!isCompleted && !isDeleted ? "x" : false}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.8}
-          style={{ x }}
-          onDragEnd={handleDragEnd}
+          style={!isCompleted && !isDeleted ? { x } : {}}
+          onDragEnd={!isCompleted && !isDeleted ? handleDragEnd : undefined}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, x: x.get() > 0 ? 100 : -100 }}
-          className={`relative bg-white py-4 px-1 border-b border-slate-100 cursor-grab active:cursor-grabbing ${
-            isCompleted ? 'bg-slate-50/50' : ''
+          className={`relative bg-white py-4 px-1 border-b border-slate-100 ${
+            !isCompleted && !isDeleted ? 'cursor-grab active:cursor-grabbing' : ''
+          } ${
+            isCompleted ? 'bg-green-50/30' : ''
+          } ${
+            isDeleted ? 'bg-red-50/30' : ''
           }`}
           data-testid={`task-swipe-area-${task.id}`}
         >
           <div className="flex items-start gap-3">
+            {/* Drag Handle - only for active draggable tasks */}
+            {isDraggable && !isCompleted && !isDeleted && (
+              <div className="flex-shrink-0 mt-1 cursor-grab active:cursor-grabbing" data-testid={`task-drag-handle-${task.id}`}>
+                <GripVertical className="w-5 h-5 text-slate-300" />
+              </div>
+            )}
+
             {/* Checkbox */}
-            <button
-              data-testid={`task-checkbox-${task.id}`}
-              onClick={() => onToggle(task.id)}
-              className={`flex-shrink-0 w-5 h-5 rounded border-2 mt-1 transition-colors ${
-                task.completed
-                  ? 'bg-slate-400 border-slate-400'
-                  : 'border-slate-300 hover:border-slate-400'
-              }`}
-            >
-              {task.completed && <Check className="w-4 h-4 text-white" />}
-            </button>
+            {!isDeleted && (
+              <button
+                data-testid={`task-checkbox-${task.id}`}
+                onClick={() => onToggle(task.id)}
+                className={`flex-shrink-0 w-5 h-5 rounded border-2 mt-1 transition-colors ${
+                  task.completed
+                    ? 'bg-green-500 border-green-500'
+                    : 'border-slate-300 hover:border-slate-400'
+                }`}
+              >
+                {task.completed && <Check className="w-4 h-4 text-white" />}
+              </button>
+            )}
 
             {/* Task Content */}
             <div className="flex-1 min-w-0">
-              <p
-                className={`text-lg ${
-                  task.completed
-                    ? 'text-slate-400 line-through'
-                    : 'text-slate-800'
-                }`}
-              >
-                {task.text}
-              </p>
+              <div className="flex items-center gap-2">
+                <p
+                  className={`text-lg ${
+                    task.completed
+                      ? 'text-green-700 line-through'
+                      : isDeleted
+                      ? 'text-red-400 line-through'
+                      : 'text-slate-800'
+                  }`}
+                >
+                  {task.text}
+                </p>
+                {isDeleted && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">
+                    deleted
+                  </span>
+                )}
+              </div>
 
               {/* Meta Info */}
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                {task.priority && (
+                {task.priority && !isDeleted && (
                   <span
                     className={`text-xs px-2.5 py-1 rounded-full font-medium ${getPriorityColor(
                       task.priority
@@ -147,11 +171,13 @@ const TaskItem = ({ task, onToggle, onDelete, onUpdate, isCompleted = false }) =
                     {task.priority}
                   </span>
                 )}
-                {task.dueDate && (
+                {task.dueDate && !isDeleted && (
                   <span
                     className={`text-xs flex items-center gap-1 ${
                       isPast(new Date(task.dueDate)) && !task.completed
                         ? 'text-red-500'
+                        : isCompleted
+                        ? 'text-green-600'
                         : 'text-slate-400'
                     }`}
                     data-testid={`task-due-date-${task.id}`}
@@ -163,14 +189,35 @@ const TaskItem = ({ task, onToggle, onDelete, onUpdate, isCompleted = false }) =
               </div>
             </div>
 
-            {/* Edit Button */}
-            <button
-              data-testid={`task-edit-btn-${task.id}`}
-              onClick={handleEdit}
-              className="flex-shrink-0 p-2 hover:bg-slate-100 rounded transition-colors active:scale-95"
-            >
-              <Pencil className="w-4 h-4 text-slate-400" />
-            </button>
+            {/* Action Buttons */}
+            <div className="flex gap-1">
+              {isDeleted ? (
+                <>
+                  <button
+                    data-testid={`task-restore-btn-${task.id}`}
+                    onClick={() => onRestore(task.id)}
+                    className="flex-shrink-0 p-2 hover:bg-green-100 rounded transition-colors active:scale-95"
+                  >
+                    <RotateCcw className="w-4 h-4 text-green-600" />
+                  </button>
+                  <button
+                    data-testid={`task-permanent-delete-btn-${task.id}`}
+                    onClick={() => onDelete(task.id)}
+                    className="flex-shrink-0 p-2 hover:bg-red-100 rounded transition-colors active:scale-95"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  data-testid={`task-edit-btn-${task.id}`}
+                  onClick={handleEdit}
+                  className="flex-shrink-0 p-2 hover:bg-slate-100 rounded transition-colors active:scale-95"
+                >
+                  <Pencil className="w-4 h-4 text-slate-400" />
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
