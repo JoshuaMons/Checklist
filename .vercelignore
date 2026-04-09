@@ -1,0 +1,19 @@
+# Vercel ignore file
+backend/
+node_modules/
+.env.local
+.env.development
+.DS_Store
+*.log
+.git/
+.emergent/
+test_reports/
+memory/
+scripts/
+.vscode/
+*.pyc
+__pycache__/
+.pytest_cache/
+coverage/
+*.test.js
+*.spec.js
