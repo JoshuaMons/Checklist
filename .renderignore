@@ -1,0 +1,13 @@
+# Render ignore file
+node_modules/
+.env.local
+.DS_Store
+*.log
+.git/
+.emergent/
+test_reports/
+memory/
+scripts/
+.vscode/
+*.pyc
+__pycache__/
